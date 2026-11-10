@@ -1,52 +1,52 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="820" height="338" viewBox="0 0 820 338" role="img"><style>text{font-family:-apple-system,'Segoe UI',Helvetica,Arial,sans-serif}.serif{font-family:'Instrument Serif',Georgia,'Times New Roman',serif}.m{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+<svg xmlns="http://www.w3.org/2000/svg" width="820" height="338" viewBox="0 0 820 338" role="img"><style>:root{--ink:#1f2328;--muted:#656d76;--line:#d0d7de;--card:#f6f8fa;--blue:#0969da;--red:#cf222e;--yel:#bf8700;--h0:#ebedf0;--h1:#b6d6ff;--h2:#79b8ff;--h3:#388bfd;--h4:#0969da}@media (prefers-color-scheme:dark){:root{--ink:#e6edf3;--muted:#7d8590;--line:#30363d;--card:#161b22;--blue:#58a6ff;--red:#ff7b72;--yel:#e3b341;--h0:#161b22;--h1:#0c2d6b;--h2:#1158c7;--h3:#388bfd;--h4:#79c0ff}}text{font-family:-apple-system,'Segoe UI',Helvetica,Arial,sans-serif}.serif{font-family:'Instrument Serif',Georgia,'Times New Roman',serif}.m{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
     .k{opacity:0;transform-box:fill-box;transform-origin:center;animation:in .6s cubic-bezier(.3,1.4,.5,1) forwards}
     @keyframes in{from{opacity:0;transform:translateY(24px) scale(.96)}to{opacity:1;transform:none}}
-    .ty{stroke-dasharray:60;stroke-dashoffset:60;animation:dr 1s ease forwards}@keyframes dr{to{stroke-dashoffset:0}}@media (prefers-reduced-motion:reduce){*{animation:none!important;opacity:1!important;transform:none!important}}</style><rect width="820" height="338" rx="16" fill="#f4efe4" stroke="#d8d0bd"/><text class="serif" x="36" y="50" font-size="30" fill="#17150f">What I'm coding</text><text class="m" x="36" y="70" font-size="12" fill="#6b6558">every public repo, newest push first</text><a href="https://github.com/TanmayKhatriLFM/FetchAPI"><g class="k" style="animation-delay:0.20s">
-          <rect x="36" y="88" width="241" height="112" rx="12" fill="#ece5d4" stroke="#d8d0bd"/>
+    .ty{stroke-dasharray:60;stroke-dashoffset:60;animation:dr 1s ease forwards}@keyframes dr{to{stroke-dashoffset:0}}@media (prefers-reduced-motion:reduce){*{animation:none!important;opacity:1!important;transform:none!important}}</style><text class="serif" x="36" y="50" font-size="30" fill="var(--ink)">What I'm coding</text><text class="m" x="36" y="70" font-size="12" fill="var(--muted)">every public repo, newest push first</text><a href="https://github.com/TanmayKhatriLFM/FetchAPI"><g class="k" style="animation-delay:0.20s">
+          <rect x="36" y="88" width="241" height="112" rx="12" fill="var(--card)" stroke="var(--line)"/>
           <rect x="36" y="104" width="4" height="30" rx="2" fill="#3572A5"/>
-          <text class="m" x="56" y="126" font-size="14" font-weight="700" fill="#17150f">FetchAPI</text>
-          <path class="ty" style="animation-delay:0.60s" d="M56 136 h60" stroke="#2f5bea" stroke-width="2" fill="none"/>
+          <text class="m" x="56" y="126" font-size="14" font-weight="700" fill="var(--ink)">FetchAPI</text>
+          <path class="ty" style="animation-delay:0.60s" d="M56 136 h60" stroke="var(--blue)" stroke-width="2" fill="none"/>
           <circle cx="60" cy="164" r="5" fill="#3572A5"/>
-          <text x="72" y="168" font-size="13" fill="#17150f">Python</text>
-          <text class="m" x="56" y="188" font-size="11" fill="#6b6558">2 commits · 16 Jun 2026</text>
+          <text x="72" y="168" font-size="13" fill="var(--ink)">Python</text>
+          <text class="m" x="56" y="188" font-size="11" fill="var(--muted)">2 commits · 16 Jun 2026</text>
         </g></a><a href="https://github.com/TanmayKhatriLFM/india-insurance-scrapping"><g class="k" style="animation-delay:0.32s">
-          <rect x="289" y="88" width="241" height="112" rx="12" fill="#ece5d4" stroke="#d8d0bd"/>
+          <rect x="289" y="88" width="241" height="112" rx="12" fill="var(--card)" stroke="var(--line)"/>
           <rect x="289" y="104" width="4" height="30" rx="2" fill="#3572A5"/>
-          <text class="m" x="309" y="126" font-size="14" font-weight="700" fill="#17150f">india-insurance-scrap…</text>
-          <path class="ty" style="animation-delay:0.72s" d="M309 136 h60" stroke="#2f5bea" stroke-width="2" fill="none"/>
+          <text class="m" x="309" y="126" font-size="14" font-weight="700" fill="var(--ink)">india-insurance-scrap…</text>
+          <path class="ty" style="animation-delay:0.72s" d="M309 136 h60" stroke="var(--blue)" stroke-width="2" fill="none"/>
           <circle cx="313" cy="164" r="5" fill="#3572A5"/>
-          <text x="325" y="168" font-size="13" fill="#17150f">Python</text>
-          <text class="m" x="309" y="188" font-size="11" fill="#6b6558">2 commits · 05 Jun 2026</text>
+          <text x="325" y="168" font-size="13" fill="var(--ink)">Python</text>
+          <text class="m" x="309" y="188" font-size="11" fill="var(--muted)">2 commits · 05 Jun 2026</text>
         </g></a><a href="https://github.com/TanmayKhatriLFM/Login_automation"><g class="k" style="animation-delay:0.44s">
-          <rect x="542" y="88" width="241" height="112" rx="12" fill="#ece5d4" stroke="#d8d0bd"/>
+          <rect x="542" y="88" width="241" height="112" rx="12" fill="var(--card)" stroke="var(--line)"/>
           <rect x="542" y="104" width="4" height="30" rx="2" fill="#3572A5"/>
-          <text class="m" x="562" y="126" font-size="14" font-weight="700" fill="#17150f">Login_automation</text>
-          <path class="ty" style="animation-delay:0.84s" d="M562 136 h60" stroke="#2f5bea" stroke-width="2" fill="none"/>
+          <text class="m" x="562" y="126" font-size="14" font-weight="700" fill="var(--ink)">Login_automation</text>
+          <path class="ty" style="animation-delay:0.84s" d="M562 136 h60" stroke="var(--blue)" stroke-width="2" fill="none"/>
           <circle cx="566" cy="164" r="5" fill="#3572A5"/>
-          <text x="578" y="168" font-size="13" fill="#17150f">Python</text>
-          <text class="m" x="562" y="188" font-size="11" fill="#6b6558">1 commit · 03 Jun 2026</text>
+          <text x="578" y="168" font-size="13" fill="var(--ink)">Python</text>
+          <text class="m" x="562" y="188" font-size="11" fill="var(--muted)">1 commit · 03 Jun 2026</text>
         </g></a><a href="https://github.com/TanmayKhatriLFM/Scrapping-practice"><g class="k" style="animation-delay:0.56s">
-          <rect x="36" y="212" width="241" height="112" rx="12" fill="#ece5d4" stroke="#d8d0bd"/>
+          <rect x="36" y="212" width="241" height="112" rx="12" fill="var(--card)" stroke="var(--line)"/>
           <rect x="36" y="228" width="4" height="30" rx="2" fill="#e34c26"/>
-          <text class="m" x="56" y="250" font-size="14" font-weight="700" fill="#17150f">Scrapping-practice</text>
-          <path class="ty" style="animation-delay:0.96s" d="M56 260 h60" stroke="#2f5bea" stroke-width="2" fill="none"/>
+          <text class="m" x="56" y="250" font-size="14" font-weight="700" fill="var(--ink)">Scrapping-practice</text>
+          <path class="ty" style="animation-delay:0.96s" d="M56 260 h60" stroke="var(--blue)" stroke-width="2" fill="none"/>
           <circle cx="60" cy="288" r="5" fill="#e34c26"/>
-          <text x="72" y="292" font-size="13" fill="#17150f">HTML</text>
-          <text class="m" x="56" y="312" font-size="11" fill="#6b6558">1 commit · 02 Jun 2026</text>
+          <text x="72" y="292" font-size="13" fill="var(--ink)">HTML</text>
+          <text class="m" x="56" y="312" font-size="11" fill="var(--muted)">1 commit · 02 Jun 2026</text>
         </g></a><a href="https://github.com/TanmayKhatriLFM/Two_weeks_assignment_LFM"><g class="k" style="animation-delay:0.68s">
-          <rect x="289" y="212" width="241" height="112" rx="12" fill="#ece5d4" stroke="#d8d0bd"/>
+          <rect x="289" y="212" width="241" height="112" rx="12" fill="var(--card)" stroke="var(--line)"/>
           <rect x="289" y="228" width="4" height="30" rx="2" fill="#9a9384"/>
-          <text class="m" x="309" y="250" font-size="14" font-weight="700" fill="#17150f">Two_weeks_assignment_…</text>
-          <path class="ty" style="animation-delay:1.08s" d="M309 260 h60" stroke="#2f5bea" stroke-width="2" fill="none"/>
+          <text class="m" x="309" y="250" font-size="14" font-weight="700" fill="var(--ink)">Two_weeks_assignment_…</text>
+          <path class="ty" style="animation-delay:1.08s" d="M309 260 h60" stroke="var(--blue)" stroke-width="2" fill="none"/>
           <circle cx="313" cy="288" r="5" fill="#9a9384"/>
-          <text x="325" y="292" font-size="13" fill="#17150f">no code yet</text>
-          <text class="m" x="309" y="312" font-size="11" fill="#6b6558">empty · 29 May 2026</text>
+          <text x="325" y="292" font-size="13" fill="var(--ink)">no code yet</text>
+          <text class="m" x="309" y="312" font-size="11" fill="var(--muted)">empty · 29 May 2026</text>
         </g></a><a href="https://github.com/TanmayKhatriLFM/Tanmay-Khatri-DayWise-Work"><g class="k" style="animation-delay:0.80s">
-          <rect x="542" y="212" width="241" height="112" rx="12" fill="#ece5d4" stroke="#d8d0bd"/>
+          <rect x="542" y="212" width="241" height="112" rx="12" fill="var(--card)" stroke="var(--line)"/>
           <rect x="542" y="228" width="4" height="30" rx="2" fill="#9a9384"/>
-          <text class="m" x="562" y="250" font-size="14" font-weight="700" fill="#17150f">Tanmay-Khatri-DayWise…</text>
-          <path class="ty" style="animation-delay:1.20s" d="M562 260 h60" stroke="#2f5bea" stroke-width="2" fill="none"/>
+          <text class="m" x="562" y="250" font-size="14" font-weight="700" fill="var(--ink)">Tanmay-Khatri-DayWise…</text>
+          <path class="ty" style="animation-delay:1.20s" d="M562 260 h60" stroke="var(--blue)" stroke-width="2" fill="none"/>
           <circle cx="566" cy="288" r="5" fill="#9a9384"/>
-          <text x="578" y="292" font-size="13" fill="#17150f">fork</text>
-          <text class="m" x="562" y="312" font-size="11" fill="#6b6558">11 commits · 29 May 2026</text>
+          <text x="578" y="292" font-size="13" fill="var(--ink)">fork</text>
+          <text class="m" x="562" y="312" font-size="11" fill="var(--muted)">11 commits · 29 May 2026</text>
         </g></a></svg>

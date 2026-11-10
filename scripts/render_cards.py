@@ -14,8 +14,12 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "cards")
 STATIC = os.environ.get("STATIC") == "1"
 
-PAPER, PAPER2, INK, MUTED, LINE = "#f4efe4", "#ece5d4", "#17150f", "#6b6558", "#d8d0bd"
-BLUE, RED, YEL = "#2f5bea", "#e5484d", "#e8a800"
+PAPER, PAPER2, INK, MUTED, LINE = "none", "var(--card)", "var(--ink)", "var(--muted)", "var(--line)"
+BLUE, RED, YEL = "var(--blue)", "var(--red)", "var(--yel)"
+THEME = (":root{--ink:#1f2328;--muted:#656d76;--line:#d0d7de;--card:#f6f8fa;--blue:#0969da;--red:#cf222e;--yel:#bf8700;"
+         "--h0:#ebedf0;--h1:#b6d6ff;--h2:#79b8ff;--h3:#388bfd;--h4:#0969da}"
+         "@media (prefers-color-scheme:dark){:root{--ink:#e6edf3;--muted:#7d8590;--line:#30363d;--card:#161b22;--blue:#58a6ff;--red:#ff7b72;--yel:#e3b341;"
+         "--h0:#161b22;--h1:#0c2d6b;--h2:#1158c7;--h3:#388bfd;--h4:#79c0ff}}")
 SERIF = "'Instrument Serif',Georgia,'Times New Roman',serif"
 SANS = "-apple-system,'Segoe UI',Helvetica,Arial,sans-serif"
 MONO = "ui-monospace,SFMono-Regular,Menlo,Consolas,monospace"
@@ -27,8 +31,8 @@ def svg(w, h, body, css=""):
     if STATIC:
         css = ""
     return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}" role="img">'
-            f'<style>text{{font-family:{SANS}}}.serif{{font-family:{SERIF}}}.m{{font-family:{MONO}}}{css}{REDUCE}</style>'
-            f'<rect width="{w}" height="{h}" rx="16" fill="{PAPER}" stroke="{LINE}"/>{body}</svg>')
+            f'<style>{THEME}text{{font-family:{SANS}}}.serif{{font-family:{SERIF}}}.m{{font-family:{MONO}}}{css}{REDUCE}</style>'
+            f'{body}</svg>')
 
 
 def write(name, content):
@@ -112,7 +116,7 @@ def tile(name, color, title, number, label, sub, delay, tilt):
     if STATIC:
         nums = f'<text class="serif" x="28" y="112" font-size="68" fill="{INK}">{number}</text>'
     body = f'''<defs><linearGradient id="s{name[0]}" gradientUnits="userSpaceOnUse" x1="-120" x2="-40">
-      <stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
+      <stop offset="0" stop-color="var(--ink)" stop-opacity="0"/><stop offset=".5" stop-color="var(--ink)" stop-opacity=".18"/><stop offset="1" stop-color="var(--ink)" stop-opacity="0"/>
       <animateTransform attributeName="gradientTransform" type="translate" from="0 0" to="420 0" dur="1.4s" begin="{delay + 1.5}s;0s" repeatCount="indefinite" additive="sum"/>
     </linearGradient></defs>
     <g class="t">
@@ -189,7 +193,7 @@ def heatmap(days):
     w, h = 820, 200
     css = ".c{opacity:0;transform-box:fill-box;transform-origin:center;animation:pop .4s ease forwards}@keyframes pop{from{opacity:0;transform:scale(.2)}to{opacity:1;transform:none}}"
     mx = max(x["count"] for x in days) or 1
-    pal = ["#e4dccb", "#c3d3ff", "#86a6ff", "#4f7af0", BLUE]
+    pal = ["var(--h0)", "var(--h1)", "var(--h2)", "var(--h3)", "var(--h4)"]
     body = f'<text class="serif" x="36" y="44" font-size="30" fill="{INK}">The last year</text>'
     off = (d(days[0]["date"]).weekday() + 1) % 7
     cols = (len(days) + off + 6) // 7
