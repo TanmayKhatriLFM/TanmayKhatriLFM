@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="820" height="250" viewBox="0 0 820 250" role="img"><style>text{font-family:-apple-system,'Segoe UI',Helvetica,Arial,sans-serif}.m{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+    .l{opacity:0;animation:rise .8s cubic-bezier(.2,.8,.2,1) forwards}
+    .l2{animation-delay:.25s}.l3{animation-delay:.5s}
+    @keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+    .cur{animation:blink 1s steps(1) infinite}@keyframes blink{50%{opacity:0}}
+    @media (prefers-reduced-motion:reduce){*{animation:none!important}}</style><rect width="820" height="250" rx="14" fill="#0d1117" stroke="#21262d"/>
+    <defs><linearGradient id="g" gradientUnits="userSpaceOnUse" x1="-300" x2="0">
+      <stop offset="0" stop-color="#e6edf3"/><stop offset=".5" stop-color="#2f81f7"/><stop offset="1" stop-color="#e6edf3"/>
+      <animateTransform attributeName="gradientTransform" type="translate" from="0 0" to="900 0" dur="3.5s" begin="1s" repeatCount="indefinite"/>
+    </linearGradient></defs>
+    <text class="l" x="48" y="92" font-size="52" font-weight="700" fill="#e6edf3">Tanmay</text>
+    <text class="l l2" x="48" y="152" font-size="52" font-weight="700" fill="url(#g)">Khatri</text>
+    <text class="l l3 m" x="48" y="192" font-size="14" fill="#7d8590">Building healthcare software that runs a hospital<tspan class="cur" fill="#2f81f7">_</tspan></text>
+    <text class="l l3 m" x="48" y="216" font-size="13" fill="#7d8590">Next.js · TypeScript · Postgres · WhatsApp automation</text>
+    <text class="l m" style="animation-delay:0.60s" x="540" y="70" font-size="13" fill="#2f81f7">const hospital = new Altrus();</text><text class="l m" style="animation-delay:0.78s" x="540" y="96" font-size="13" fill="#7d8590">await hospital.admit(patient);</text><text class="l m" style="animation-delay:0.96s" x="540" y="122" font-size="13" fill="#2f81f7">await hospital.discharge();</text><text class="l m" style="animation-delay:1.14s" x="540" y="148" font-size="13" fill="#7d8590">bot.on(&#x27;whatsapp&#x27;, book);</text><text class="l m" style="animation-delay:1.32s" x="540" y="174" font-size="13" fill="#2f81f7">fms.run(&#x27;facility-round&#x27;);</text><text class="l m" style="animation-delay:1.50s" x="540" y="200" font-size="13" fill="#7d8590">ship(); // daily</text></svg>
