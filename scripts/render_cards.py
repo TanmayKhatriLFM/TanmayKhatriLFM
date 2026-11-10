@@ -1,29 +1,30 @@
 #!/usr/bin/env python3
 """Render the animated SVG cards for the GitHub profile README.
 
-Everything here comes from the real account: data/profile.json (repos, commits,
-join date) and data/contributions.json (calendar), both refreshed daily by the
-workflow. GitHub shows README images through <img>, which blocks scripts but
-still runs inline CSS keyframes and SMIL, so each card is one self-contained SVG.
+Every number on every card is computed from data/profile.json and
+data/contributions.json (refreshed by the workflow). Nothing is typed in by hand.
+Cards are single self-contained SVGs: GitHub shows README images through <img>,
+which blocks scripts but still runs inline CSS keyframes and SMIL.
 
 Usage: python3 scripts/render_cards.py        (STATIC=1 renders final frames)
 """
-import json, os, datetime, html
+import json, os, datetime, html, collections
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "cards")
 STATIC = os.environ.get("STATIC") == "1"
 
-PAPER, PAPER2, INK, MUTED, LINE = "none", "var(--card)", "var(--ink)", "var(--muted)", "var(--line)"
-BLUE, RED, YEL = "var(--blue)", "var(--red)", "var(--yel)"
-THEME = (":root{--ink:#1f2328;--muted:#656d76;--line:#d0d7de;--card:#f6f8fa;--blue:#0969da;--red:#cf222e;--yel:#bf8700;"
-         "--h0:#ebedf0;--h1:#b6d6ff;--h2:#79b8ff;--h3:#388bfd;--h4:#0969da}.pd{display:none}"
-         "@media (prefers-color-scheme:dark){:root{--ink:#e6edf3;--muted:#7d8590;--line:#30363d;--card:#161b22;--blue:#58a6ff;--red:#ff7b72;--yel:#e3b341;"
-         "--h0:#161b22;--h1:#0c2d6b;--h2:#1158c7;--h3:#388bfd;--h4:#79c0ff}}")
+INK, MUTED, LINE, CARD = "var(--ink)", "var(--muted)", "var(--line)", "var(--card)"
 SERIF = "'Instrument Serif',Georgia,'Times New Roman',serif"
 SANS = "-apple-system,'Segoe UI',Helvetica,Arial,sans-serif"
 MONO = "ui-monospace,SFMono-Regular,Menlo,Consolas,monospace"
-LANG = {"Python": "#3572A5", "HTML": "#e34c26", "JavaScript": "#f1e05a", "TypeScript": "#3178c6", None: "#9a9384"}
+LANG = {"Python": "#3572A5", "HTML": "#e34c26", "JavaScript": "#f1e05a", "TypeScript": "#3178c6", None: "#8b8577"}
+BLUE, RED, YEL = "#2f5bea", "#e5484d", "#f5b301"
+
+THEME = (":root{--ink:#1f2328;--muted:#656d76;--line:#d0d7de;--card:#f6f8fa;--floor:#e3e7eb;"
+         "--b1:#6f95ff;--b2:#2f5bea;--b3:#1e3fb0;--hi:#e5484d}"
+         "@media (prefers-color-scheme:dark){:root{--ink:#e6edf3;--muted:#7d8590;--line:#30363d;--card:#161b22;--floor:#1d242d;"
+         "--b1:#8fb0ff;--b2:#4a78f0;--b3:#2a4fc2;--hi:#ff7b72}}")
 REDUCE = "@media (prefers-reduced-motion:reduce){*{animation:none!important;opacity:1!important;transform:none!important}}"
 
 
@@ -54,206 +55,255 @@ def load():
     return days, prof
 
 
+def stats(days):
+    active = [x for x in days if x["count"]]
+    total = sum(x["count"] for x in days)
+    best = max(active, key=lambda x: x["count"]) if active else {"count": 0, "date": days[-1]["date"]}
+    streak = run = 0
+    prev = None
+    for x in active:
+        dt = d(x["date"])
+        run = run + 1 if prev and (dt - prev).days == 1 else 1
+        streak, prev = max(streak, run), dt
+    return total, len(active), streak, best
+
+
 # ---------------------------------------------------------------- hero
 def hero(prof, days):
+    total, nactive, streak, best = stats(days)
     css = """
     .l{opacity:0;animation:rise .9s cubic-bezier(.2,.8,.2,1) forwards}
-    @keyframes rise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+    @keyframes rise{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
     .r{opacity:0;animation:fade .25s ease forwards}@keyframes fade{to{opacity:1}}
-    .dot{animation:pulse 1.8s ease-out infinite;transform-box:fill-box;transform-origin:center}
-    @keyframes pulse{0%{transform:scale(1);opacity:.9}100%{transform:scale(3);opacity:0}}
+    .rule{transform-box:fill-box;transform-origin:left;transform:scaleX(0);animation:wipe 1s .5s cubic-bezier(.2,.8,.2,1) forwards}
+    @keyframes wipe{to{transform:scaleX(1)}}
     """
     last = max(r["pushed_at"] for r in prof["repos"])
-    langs = []
-    for r in prof["repos"]:
-        if r["language"] and r["language"] not in langs:
-            langs.append(r["language"])
     body = f'''
-    <defs><linearGradient id="sh" gradientUnits="userSpaceOnUse" x1="-260" x2="0">
-      <stop offset="0" stop-color="{INK}"/><stop offset=".5" stop-color="{BLUE}"/><stop offset="1" stop-color="{INK}"/>
-      <animateTransform attributeName="gradientTransform" type="translate" from="0 0" to="700 0" dur="2.6s" begin="1.2s;sh2.end+3s" id="sh2"/>
-    </linearGradient></defs>
-    <text class="l serif" x="52" y="118" font-size="84" fill="{INK}">Tanmay</text>
-    <text class="l serif" style="animation-delay:.2s" x="52" y="198" font-size="84" fill="url(#sh)">Khatri</text>
-    <text class="l" style="animation-delay:.5s" x="54" y="244" font-size="15" fill="{MUTED}">Learning in public: test automation, scraping, APIs.</text>
-    <text class="l m" style="animation-delay:.6s" x="54" y="272" font-size="13" fill="{BLUE}">@{esc(prof["login"])}  ·  joined {d(prof["created_at"]):%b %Y}</text>
-    <g class="l" style="animation-delay:.8s">
-      <circle class="dot" cx="60" cy="312" r="5" fill="{RED}"/><circle cx="60" cy="312" r="5" fill="{RED}"/>
-      <text class="m" x="76" y="316" font-size="13" fill="{INK}">last push {d(last):%d %b %Y}  ·  {" · ".join(esc(l) for l in langs)}</text>
-    </g>'''
-    # ASCII portrait, printed row by row (18 ms apart); one version per theme
-    cw, lh, fs = 2.8, 5.65, 4.8
-    x0, y0 = 458, 30
-    for cls, fn in (("pl", "portrait.txt"),):
-        p = os.path.join(ROOT, "assets", fn)
-        if not os.path.exists(p):
-            continue
-        body += f'<g class="{cls}">'
+    <text class="l serif" x="48" y="118" font-size="92" fill="{INK}">Tanmay</text>
+    <text class="l serif" style="animation-delay:.18s" x="48" y="202" font-size="92" fill="{INK}">Khatri</text>
+    <rect class="rule" x="52" y="232" width="360" height="2" fill="{INK}"/>'''
+    for i, (n, lab) in enumerate([(total, "contributions"), (nactive, "active days"), (streak, "day streak")]):
+        x = 52 + i * 128
+        body += (f'<g class="l" style="animation-delay:{.5 + i * .12:.2f}s"><text class="serif" x="{x}" y="288" font-size="46" fill="{INK}">{n}</text>'
+                 f'<text class="m" x="{x}" y="308" font-size="11" fill="{MUTED}">{lab}</text></g>')
+    body += (f'<text class="l m" style="animation-delay:.9s" x="52" y="346" font-size="11" fill="{MUTED}">'
+             f'@{esc(prof["login"])}  /  since {d(prof["created_at"]):%d %b %Y}  /  last push {d(last):%d %b %Y}</text>')
+    # ASCII portrait, printed row by row (18 ms apart)
+    p = os.path.join(ROOT, "assets", "portrait.txt")
+    if os.path.exists(p):
+        cw, lh, fs = 2.8, 5.65, 4.8
+        x0, y0 = 458, 30
         for i, row in enumerate(open(p).read().split("\n")):
             if not row.strip():
                 continue
             body += (f'<text class="r m" style="animation-delay:{.4 + i * .018:.3f}s" xml:space="preserve" '
                      f'x="{x0}" y="{y0 + i * lh:.1f}" font-size="{fs}" fill="{INK}" textLength="{len(row) * cw:.1f}" '
                      f'lengthAdjust="spacing">{esc(row)}</text>')
-        body += "</g>"
-    write("hero.svg", svg(820, 400, body, css))
+    write("hero.svg", svg(820, 380, body, css))
 
 
 # ---------------------------------------------------------------- tiles
-def tile(name, color, title, number, label, sub, delay, tilt):
+def tile(name, bg, fg, title, number, label, strip, delay, tilt):
     css = f"""
     .t{{transform-box:fill-box;transform-origin:bottom left;opacity:0;animation:swing 1s cubic-bezier(.3,1.5,.5,1) {delay}s forwards}}
     @keyframes swing{{from{{opacity:0;transform:translateY(46px) rotate({tilt}deg)}}to{{opacity:1;transform:none}}}}
-    .ring{{transform-box:fill-box;transform-origin:center;animation:ring 2.4s ease-out {delay + 1}s infinite;opacity:0}}
-    @keyframes ring{{0%{{transform:scale(.4);opacity:.7}}100%{{transform:scale(2.6);opacity:0}}}}
-    .ar{{animation:nudge 1.6s ease-in-out infinite}}@keyframes nudge{{50%{{transform:translate(4px,-4px)}}}}
-    """
+    .sb{{transform-box:fill-box;transform-origin:bottom;transform:scaleY(0);animation:up .6s ease forwards}}
+    @keyframes up{{to{{transform:scaleY(1)}}}}"""
     steps = 20
     nums = ""
     for i in range(steps):
         v = round(number * (i + 1) / steps)
         t0 = delay + .35 + i * .045
         end = f'<set attributeName="visibility" to="hidden" begin="{t0 + .045:.3f}s" fill="freeze"/>' if i < steps - 1 else ""
-        nums += (f'<text class="serif" x="28" y="112" font-size="68" fill="{INK}" visibility="hidden">{v}'
+        nums += (f'<text class="serif" x="24" y="104" font-size="70" fill="{fg}" visibility="hidden">{v}'
                  f'<set attributeName="visibility" to="visible" begin="{t0:.3f}s" fill="freeze"/>{end}</text>')
     if STATIC:
-        nums = f'<text class="serif" x="28" y="112" font-size="68" fill="{INK}">{number}</text>'
-    body = f'''<defs><linearGradient id="s{name[0]}" gradientUnits="userSpaceOnUse" x1="-120" x2="-40">
-      <stop offset="0" stop-color="var(--ink)" stop-opacity="0"/><stop offset=".5" stop-color="var(--ink)" stop-opacity=".18"/><stop offset="1" stop-color="var(--ink)" stop-opacity="0"/>
-      <animateTransform attributeName="gradientTransform" type="translate" from="0 0" to="420 0" dur="1.4s" begin="{delay + 1.5}s;0s" repeatCount="indefinite" additive="sum"/>
-    </linearGradient></defs>
-    <g class="t">
-      <rect x="1" y="1" width="258" height="178" rx="16" fill="{PAPER2}" stroke="{color}" stroke-width="2"/>
-      <rect x="1" y="1" width="258" height="178" rx="16" fill="url(#s{name[0]})"/>
-      <circle class="ring" cx="226" cy="34" r="12" fill="none" stroke="{color}" stroke-width="2"/>
-      <circle cx="226" cy="34" r="5" fill="{color}"/>
-      <text class="m" x="28" y="42" font-size="12" letter-spacing="3" fill="{color}" font-weight="700">{title}</text>
+        nums = f'<text class="serif" x="24" y="104" font-size="70" fill="{fg}">{number}</text>'
+    # strip: list of (value, active) bars drawn along the bottom
+    sw, sx, sy, sh = 212, 24, 172, 30
+    mx = max((v for v, _ in strip), default=1) or 1
+    n = len(strip)
+    bw = sw / n
+    bars = ""
+    for i, (v, on) in enumerate(strip):
+        bh = max(2, sh * v / mx) if on else 2
+        bars += (f'<rect class="sb" style="animation-delay:{delay + .5 + i * (0.6 / n):.3f}s" x="{sx + i * bw:.2f}" y="{sy - bh:.1f}" '
+                 f'width="{max(.8, bw - (1.2 if bw > 4 else .3)):.2f}" height="{bh:.1f}" fill="{fg}" opacity="{1 if on else .35}"/>')
+    body = f'''<g class="t">
+      <rect width="260" height="190" rx="14" fill="{bg}"/>
+      <text class="m" x="24" y="36" font-size="11" letter-spacing="3" fill="{fg}" font-weight="700">{title}</text>
       {nums}
-      <text x="28" y="142" font-size="14" fill="{INK}" font-weight="600">{esc(label)}</text>
-      <text x="28" y="162" font-size="12" fill="{MUTED}">{esc(sub)}</text>
-      <text class="ar" x="228" y="162" font-size="20" fill="{color}">↗</text>
+      <text x="24" y="130" font-size="14" fill="{fg}" font-weight="600">{esc(label)}</text>
+      {bars}
     </g>'''
-    write(name, svg(260, 180, body, css))
+    write(name, svg(260, 190, body, css))
 
 
-# ---------------------------------------------------------------- activity
-def activity(days, prof):
-    start = d(prof["created_at"]).replace(day=1)
-    today = datetime.date.today()
-    months, cur = [], start
-    while cur <= today:
-        months.append(cur)
-        cur = (cur.replace(day=28) + datetime.timedelta(days=4)).replace(day=1)
-    counts = {m: 0 for m in months}
-    active = []
-    for x in days:
-        dt = d(x["date"])
-        k = dt.replace(day=1)
-        if k in counts and x["count"]:
-            counts[k] += x["count"]
-            active.append(x)
-    total = sum(counts.values())
-    best = max(active, key=lambda x: x["count"]) if active else {"count": 0, "date": today.isoformat()}
-    streak = run = 0
-    prev = None
-    for x in sorted(active, key=lambda x: x["date"]):
-        dt = d(x["date"])
-        run = run + 1 if prev and (dt - prev).days == 1 else 1
-        streak, prev = max(streak, run), dt
-    mx = max(counts.values()) or 1
-    w, h, base = 820, 300, 200
+# ---------------------------------------------------------------- skyline
+def skyline(days):
+    W, base = 820, 236
+    cw, bw, step, dep = 13, 11, 5, 4        # column pitch, bar width, row offset, bar depth
+    css = """
+    .bar{transform-box:fill-box;transform-origin:bottom;transform:scaleY(0);animation:grow .7s cubic-bezier(.2,.9,.2,1) forwards}
+    @keyframes grow{to{transform:scaleY(1)}}
+    .fade{opacity:0;animation:fd .6s ease forwards}@keyframes fd{to{opacity:1}}"""
+    mx = max(x["count"] for x in days) or 1
+    off = (d(days[0]["date"]).weekday() + 1) % 7
+    cells = []
+    for i, x in enumerate(days):
+        cells.append(((i + off) // 7, (i + off) % 7, x))
+    ncols = max(c for c, _, _ in cells) + 1
+    x00 = (W - (ncols * cw + 6 * step)) / 2
+    total = sum(x["count"] for x in days)
+    body = f'<text class="serif" x="36" y="46" font-size="34" fill="{INK}">Skyline</text>'
+    body += f'<text class="m" x="36" y="66" font-size="11" fill="{MUTED}">one bar per day, height is contributions</text>'
+    floor, bars = "", ""
+    hi = None
+    for r in range(6, -1, -1):                     # back rows first
+        for c, rr, x in cells:
+            if rr != r:
+                continue
+            X = x00 + c * cw + r * step
+            Y = base - r * step
+            if not x["count"]:
+                floor += f'<path d="M{X:.1f} {Y:.1f}h{bw}l{dep} -{dep}h-{bw}z" fill="var(--floor)"/>'
+                continue
+            h = 4 + 100 * x["count"] / mx
+            delay = c * .018 + (6 - r) * .01
+            bars += (f'<g class="bar" style="animation-delay:{delay:.3f}s">'
+                     f'<rect x="{X:.1f}" y="{Y - h:.1f}" width="{bw}" height="{h:.1f}" fill="var(--b2)"/>'
+                     f'<path d="M{X:.1f} {Y - h:.1f}h{bw}l{dep} -{dep}h-{bw}z" fill="var(--b1)"/>'
+                     f'<path d="M{X + bw:.1f} {Y - h:.1f}l{dep} -{dep}v{h:.1f}l-{dep} {dep}z" fill="var(--b3)"/></g>')
+            if hi is None or x["count"] > hi[0]:
+                hi = (x["count"], X + bw / 2 + dep / 2, Y - h - dep, x["date"])
+    body += floor + bars
+    # month ticks along the front edge
+    seen = None
+    for c, rr, x in cells:
+        if rr == 0:
+            m = d(x["date"]).month
+            if m != seen:
+                seen = m
+                body += f'<text class="m" x="{x00 + c * cw:.1f}" y="{base + 22}" font-size="10" fill="{MUTED}">{d(x["date"]):%b}</text>'
+    if hi:
+        n, hx, hy, hd = hi
+        body += (f'<g class="fade" style="animation-delay:1.6s"><path d="M{hx:.1f} {hy - 2:.1f}v-14" stroke="var(--hi)" stroke-width="1.5"/>'
+                 f'<text class="m" x="{hx:.1f}" y="{hy - 22:.1f}" text-anchor="middle" font-size="11" font-weight="700" fill="var(--hi)">{n}</text>'
+                 f'<text class="m" x="{hx:.1f}" y="{hy - 34:.1f}" text-anchor="middle" font-size="9" fill="{MUTED}">{d(hd):%d %b}</text></g>')
+    stamp = datetime.datetime.utcnow()
+    body += (f'<text class="m" x="{W - 36}" y="{base + 22 + 18}" text-anchor="end" font-size="10" fill="{MUTED}">'
+             f'{total} in the last 12 months  /  updated {stamp:%d %b %H:%M} UTC</text>')
+    write("skyline.svg", svg(W, base + 62, body, css))
+
+
+# ---------------------------------------------------------------- rhythm
+def rhythm(days, prof):
+    W, H, base = 820, 270, 190
     css = f"""
     .b{{transform-box:fill-box;transform-origin:bottom;transform:scaleY(0);animation:grow .8s cubic-bezier(.2,.9,.2,1) forwards}}
     @keyframes grow{{to{{transform:scaleY(1)}}}}
     .pop{{opacity:0;animation:pp .4s ease forwards}}@keyframes pp{{from{{opacity:0;transform:translateY(6px)}}to{{opacity:1;transform:none}}}}"""
-    body = f'<text class="serif" x="36" y="50" font-size="30" fill="{INK}">Activity</text>'
-    body += f'<text class="m" x="36" y="70" font-size="12" fill="{MUTED}">commits and contributions per month since joining</text>'
-    # stats on the right
-    for i, (n, lab) in enumerate([(total, "contributions"), (len(active), "active days"), (streak, "day streak"), (best["count"], "busiest day")]):
-        x = 470 + i * 88
-        body += (f'<g class="pop" style="animation-delay:{.2 + i * .12:.2f}s"><text class="serif" x="{x}" y="52" font-size="36" fill="{INK}">{n}</text>'
-                 f'<text x="{x}" y="70" font-size="11" fill="{MUTED}">{lab}</text></g>')
-    area = w - 72
-    bw = area / len(months)
-    for i, m in enumerate(months):
-        c = counts[m]
-        bh = max(4, 110 * c / mx) if c else 4
+    months = collections.OrderedDict()
+    for x in days:
+        k = d(x["date"]).replace(day=1)
+        months[k] = months.get(k, 0) + x["count"]
+    keys = list(months)
+    while keys and not months[keys[0]]:
+        keys.pop(0)                                  # start at the first active month
+    wd = [0] * 7                                     # Sun..Sat
+    for x in days:
+        wd[(d(x["date"]).weekday() + 1) % 7] += x["count"]
+    body = f'<text class="serif" x="36" y="46" font-size="34" fill="{INK}">Rhythm</text>'
+    body += f'<text class="m" x="36" y="66" font-size="11" fill="{MUTED}">by month, and by day of the week</text>'
+    # months (left)
+    mx = max(months[k] for k in keys) or 1
+    area = 470
+    bw = area / len(keys)
+    for i, k in enumerate(keys):
+        c = months[k]
+        h = max(3, 100 * c / mx) if c else 3
         x = 36 + i * bw
-        top = c == max(counts.values()) and c > 0
-        col = BLUE if top else (INK if c else LINE)
-        body += (f'<rect class="b" style="animation-delay:{i * .1:.2f}s" x="{x + 10:.1f}" y="{base - bh:.1f}" width="{bw - 20:.1f}" '
-                 f'height="{bh:.1f}" rx="6" fill="{col}" opacity="{1 if c else .8}"/>')
-        body += f'<text x="{x + bw / 2:.1f}" y="{base + 22}" text-anchor="middle" font-size="12" fill="{MUTED}">{m:%b}</text>'
+        top = c == mx
+        body += (f'<rect class="b" style="animation-delay:{i * .08:.2f}s" x="{x + 6:.1f}" y="{base - h:.1f}" width="{bw - 12:.1f}" height="{h:.1f}" '
+                 f'rx="3" fill="{"var(--b2)" if top else INK}" opacity="{1 if top else (.85 if c else .25)}"/>')
+        body += f'<text class="m" x="{x + bw / 2:.1f}" y="{base + 18}" text-anchor="middle" font-size="10" fill="{MUTED}">{k:%b}</text>'
         if c:
-            body += (f'<text class="pop" style="animation-delay:{.8 + i * .1:.2f}s" x="{x + bw / 2:.1f}" y="{base - bh - 8:.1f}" '
-                     f'text-anchor="middle" font-size="14" font-weight="700" fill="{BLUE if top else INK}">{c}</text>')
-    body += f'<text class="m" x="36" y="{h - 18}" font-size="11" fill="{MUTED}">busiest day: {d(best["date"]):%d %b %Y}</text>'
-    write("activity.svg", svg(w, h, body, css))
-
-
-# ---------------------------------------------------------------- heatmap
-def heatmap(days):
-    w, h = 820, 200
-    css = ".c{opacity:0;transform-box:fill-box;transform-origin:center;animation:pop .4s ease forwards}@keyframes pop{from{opacity:0;transform:scale(.2)}to{opacity:1;transform:none}}"
-    mx = max(x["count"] for x in days) or 1
-    pal = ["var(--h0)", "var(--h1)", "var(--h2)", "var(--h3)", "var(--h4)"]
-    body = f'<text class="serif" x="36" y="44" font-size="30" fill="{INK}">The last year</text>'
-    off = (d(days[0]["date"]).weekday() + 1) % 7
-    cols = (len(days) + off + 6) // 7
-    cell = min(14.5, (w - 72) / cols)
-    for i, x in enumerate(days):
-        col, row = (i + off) // 7, (i + off) % 7
-        lvl = 0 if not x["count"] else min(4, 1 + int(3 * x["count"] / mx))
-        body += (f'<rect class="c" style="animation-delay:{col * .03:.3f}s" x="{36 + col * cell:.1f}" y="{66 + row * cell:.1f}" '
-                 f'width="{cell - 3:.1f}" height="{cell - 3:.1f}" rx="3" fill="{pal[lvl]}"/>')
-    write("heatmap.svg", svg(w, h, body, css))
+            body += (f'<text class="pop m" style="animation-delay:{.7 + i * .08:.2f}s" x="{x + bw / 2:.1f}" y="{base - h - 8:.1f}" text-anchor="middle" '
+                     f'font-size="11" font-weight="700" fill="{"var(--b2)" if top else INK}">{c}</text>')
+    # weekdays (right)
+    wx0, wmax = 560, max(wd) or 1
+    names = "SMTWTFS"
+    best = wd.index(max(wd))
+    for i, c in enumerate(wd):
+        h = max(3, 100 * c / wmax)
+        x = wx0 + i * 32
+        top = i == best
+        body += (f'<rect class="b" style="animation-delay:{.3 + i * .07:.2f}s" x="{x}" y="{base - h:.1f}" width="22" height="{h:.1f}" rx="3" '
+                 f'fill="{"var(--hi)" if top else INK}" opacity="{1 if top else .85}"/>')
+        body += f'<text class="m" x="{x + 11}" y="{base + 18}" text-anchor="middle" font-size="10" fill="{MUTED}">{names[i]}</text>'
+        body += (f'<text class="pop m" style="animation-delay:{.9 + i * .07:.2f}s" x="{x + 11}" y="{base - h - 8:.1f}" text-anchor="middle" '
+                 f'font-size="10" font-weight="700" fill="{"var(--hi)" if top else INK}">{c}</text>')
+    full = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+    body += f'<text class="m" x="{wx0}" y="{H - 14}" font-size="11" fill="{MUTED}">most active: {full[best]}s</text>'
+    body += f'<line x1="520" y1="86" x2="520" y2="{base + 6}" stroke="{LINE}"/>'
+    write("rhythm.svg", svg(W, H, body, css))
 
 
 # ---------------------------------------------------------------- repos
 def repos(prof):
-    items = prof["repos"]
-    cols, cw, ch, gap = 3, 241, 112, 12
-    rows = (len(items) + cols - 1) // cols
-    w, h = 820, 90 + rows * (ch + gap)
-    css = f"""
-    .k{{opacity:0;transform-box:fill-box;transform-origin:center;animation:in .6s cubic-bezier(.3,1.4,.5,1) forwards}}
-    @keyframes in{{from{{opacity:0;transform:translateY(24px) scale(.96)}}to{{opacity:1;transform:none}}}}
-    .ty{{stroke-dasharray:60;stroke-dashoffset:60;animation:dr 1s ease forwards}}@keyframes dr{{to{{stroke-dashoffset:0}}}}"""
-    body = f'<text class="serif" x="36" y="50" font-size="30" fill="{INK}">What I\'m coding</text>'
-    body += f'<text class="m" x="36" y="70" font-size="12" fill="{MUTED}">every public repo, newest push first</text>'
+    items = sorted(prof["repos"], key=lambda r: r["pushed_at"], reverse=True)
+    W, row, top = 820, 40, 96
+    H = top + len(items) * row + 24
+    css = """
+    .k{opacity:0;animation:in .5s ease forwards}@keyframes in{from{opacity:0;transform:translateX(-14px)}to{opacity:1;transform:none}}
+    .cb{transform-box:fill-box;transform-origin:left;transform:scaleX(0);animation:wx .8s cubic-bezier(.2,.9,.2,1) forwards}
+    @keyframes wx{to{transform:scaleX(1)}}"""
+    body = f'<text class="serif" x="36" y="46" font-size="34" fill="{INK}">Repositories</text>'
+    body += f'<text class="m" x="36" y="66" font-size="11" fill="{MUTED}">{prof["public_repos"]} public (this profile repo not listed), newest push first</text>'
+    mx = max((r["commits"] for r in items), default=1) or 1
     for i, r in enumerate(items):
-        cx, cy = 36 + (i % cols) * (cw + gap), 88 + (i // cols) * (ch + gap)
-        lang = r["language"]
-        col = LANG.get(lang, "#9a9384")
-        name = r["name"] if len(r["name"]) <= 22 else r["name"][:21] + "…"
-        meta = f'{r["commits"]} commit{"s" if r["commits"] != 1 else ""}' if r["commits"] else "empty"
-        meta += f' · {d(r["pushed_at"]):%d %b %Y}'
-        tag = "fork" if r["fork"] else (lang or "no code yet")
-        body += f'''<a href="https://github.com/{esc(prof["login"])}/{esc(r["name"])}"><g class="k" style="animation-delay:{.2 + i * .12:.2f}s">
-          <rect x="{cx}" y="{cy}" width="{cw}" height="{ch}" rx="12" fill="{PAPER2}" stroke="{LINE}"/>
-          <rect x="{cx}" y="{cy + 16}" width="4" height="30" rx="2" fill="{col}"/>
-          <text class="m" x="{cx + 20}" y="{cy + 38}" font-size="14" font-weight="700" fill="{INK}">{esc(name)}</text>
-          <path class="ty" style="animation-delay:{.6 + i * .12:.2f}s" d="M{cx + 20} {cy + 48} h60" stroke="{BLUE}" stroke-width="2" fill="none"/>
-          <circle cx="{cx + 24}" cy="{cy + 76}" r="5" fill="{col}"/>
-          <text x="{cx + 36}" y="{cy + 80}" font-size="13" fill="{INK}">{esc(tag)}</text>
-          <text class="m" x="{cx + 20}" y="{cy + 100}" font-size="11" fill="{MUTED}">{esc(meta)}</text>
-        </g></a>'''
-    write("repos.svg", svg(w, h, body, css))
+        y = top + i * row
+        col = LANG.get(r["language"], "#8b8577")
+        lang = "fork" if r["fork"] else (r["language"] or "empty")
+        body += f'<a href="https://github.com/{esc(prof["login"])}/{esc(r["name"])}"><g class="k" style="animation-delay:{.15 + i * .1:.2f}s">'
+        body += f'<line x1="36" y1="{y}" x2="{W - 36}" y2="{y}" stroke="{LINE}"/>'
+        body += f'<text class="m" x="36" y="{y + 25}" font-size="10" fill="{MUTED}">{i + 1:02d}</text>'
+        body += f'<text class="m" x="70" y="{y + 25}" font-size="14" font-weight="700" fill="{INK}">{esc(r["name"])}</text>'
+        body += f'<circle cx="400" cy="{y + 21}" r="4.5" fill="{col}"/><text x="412" y="{y + 25}" font-size="13" fill="{INK}">{esc(lang)}</text>'
+        bwid = 130 * r["commits"] / mx
+        body += f'<rect x="520" y="{y + 15}" width="130" height="8" rx="4" fill="var(--floor)"/>'
+        if r["commits"]:
+            body += f'<rect class="cb" style="animation-delay:{.4 + i * .1:.2f}s" x="520" y="{y + 15}" width="{bwid:.1f}" height="8" rx="4" fill="var(--b2)"/>'
+        body += f'<text class="m" x="662" y="{y + 25}" font-size="12" fill="{INK}">{r["commits"]}</text>'
+        body += f'<text class="m" x="{W - 36}" y="{y + 25}" text-anchor="end" font-size="11" fill="{MUTED}">{d(r["pushed_at"]):%d %b %Y}</text>'
+        body += "</g></a>"
+    body += f'<line x1="36" y1="{top + len(items) * row}" x2="{W - 36}" y2="{top + len(items) * row}" stroke="{LINE}"/>'
+    write("repos.svg", svg(W, H, body, css))
 
 
 def main():
     days, prof = load()
     rs = prof["repos"]
-    commits = sum(r["commits"] for r in rs)
+    total, nactive, streak, best = stats(days)
     since = (datetime.date.today() - d(prof["created_at"])).days
     hero(prof, days)
-    tile("build.svg", BLUE, "BUILD", len(rs), "public repositories", "automation, scraping, tests", .2, -5)
-    tile("work.svg", RED, "WORK", commits, "commits across repos", "one small push at a time", .45, 4)
-    tile("learn.svg", YEL, "LEARN", since, "days on GitHub", f"since {d(prof['created_at']):%d %b %Y}", .7, -4)
-    activity(days, prof)
-    heatmap(days)
+    # tile strips are real: commits per repo / weekly contributions / one cell per day since joining
+    repo_strip = [(r["commits"], True) for r in sorted(rs, key=lambda r: r["pushed_at"])]
+    weeks = [sum(x["count"] for x in days[i:i + 7]) for i in range(len(days) % 7, len(days), 7)][-26:]
+    by_date = {x["date"]: x["count"] for x in days}
+    join = d(prof["created_at"])
+    day_strip = []
+    for k in range(since + 1):
+        c = by_date.get(str(join + datetime.timedelta(days=k)), 0)
+        day_strip.append((c or 1, bool(c)))
+    tile("build.svg", BLUE, "#ffffff", "BUILD", prof["public_repos"], "public repositories", repo_strip, .2, -5)
+    tile("work.svg", RED, "#ffffff", "WORK", total, "contributions, last year", [(w, bool(w)) for w in weeks], .45, 4)
+    tile("learn.svg", YEL, "#1a1400", "LEARN", since, f"days on GitHub, {nactive} active", day_strip, .7, -4)
+    skyline(days)
+    rhythm(days, prof)
     repos(prof)
-    print("rendered", len(rs), "repos,", commits, "commits")
+    print("rendered:", total, "contributions,", nactive, "active days,", len(rs), "repos")
 
 
 if __name__ == "__main__":

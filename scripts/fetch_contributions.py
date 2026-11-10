@@ -35,5 +35,6 @@ for r in json.load(call(f"https://api.github.com/users/{USER}/repos?per_page=100
         commits = 0  # empty repository
     repos.append({"name": r["name"], "language": r["language"], "commits": commits, "pushed_at": r["pushed_at"],
                   "fork": r["fork"], "stars": r["stargazers_count"], "description": r["description"]})
-json.dump({"login": USER, "created_at": u["createdAt"], "repos": repos}, open("data/profile.json", "w"), indent=1)
+me = json.load(call(f"https://api.github.com/users/{USER}"))
+json.dump({"login": USER, "created_at": u["createdAt"], "public_repos": me["public_repos"], "repos": repos}, open("data/profile.json", "w"), indent=1)
 print(len(days), "days,", len(repos), "repos")
