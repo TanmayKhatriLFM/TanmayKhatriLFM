@@ -17,7 +17,7 @@ STATIC = os.environ.get("STATIC") == "1"
 PAPER, PAPER2, INK, MUTED, LINE = "none", "var(--card)", "var(--ink)", "var(--muted)", "var(--line)"
 BLUE, RED, YEL = "var(--blue)", "var(--red)", "var(--yel)"
 THEME = (":root{--ink:#1f2328;--muted:#656d76;--line:#d0d7de;--card:#f6f8fa;--blue:#0969da;--red:#cf222e;--yel:#bf8700;"
-         "--h0:#ebedf0;--h1:#b6d6ff;--h2:#79b8ff;--h3:#388bfd;--h4:#0969da}"
+         "--h0:#ebedf0;--h1:#b6d6ff;--h2:#79b8ff;--h3:#388bfd;--h4:#0969da}.pd{display:none}"
          "@media (prefers-color-scheme:dark){:root{--ink:#e6edf3;--muted:#7d8590;--line:#30363d;--card:#161b22;--blue:#58a6ff;--red:#ff7b72;--yel:#e3b341;"
          "--h0:#161b22;--h1:#0c2d6b;--h2:#1158c7;--h3:#388bfd;--h4:#79c0ff}}")
 SERIF = "'Instrument Serif',Georgia,'Times New Roman',serif"
@@ -75,24 +75,27 @@ def hero(prof, days):
     </linearGradient></defs>
     <text class="l serif" x="52" y="118" font-size="84" fill="{INK}">Tanmay</text>
     <text class="l serif" style="animation-delay:.2s" x="52" y="198" font-size="84" fill="url(#sh)">Khatri</text>
-    <text class="l" style="animation-delay:.5s" x="54" y="244" font-size="17" fill="{MUTED}">Learning in public: test automation, scraping and APIs.</text>
+    <text class="l" style="animation-delay:.5s" x="54" y="244" font-size="15" fill="{MUTED}">Learning in public: test automation, scraping, APIs.</text>
     <text class="l m" style="animation-delay:.6s" x="54" y="272" font-size="13" fill="{BLUE}">@{esc(prof["login"])}  ·  joined {d(prof["created_at"]):%b %Y}</text>
     <g class="l" style="animation-delay:.8s">
       <circle class="dot" cx="60" cy="312" r="5" fill="{RED}"/><circle cx="60" cy="312" r="5" fill="{RED}"/>
       <text class="m" x="76" y="316" font-size="13" fill="{INK}">last push {d(last):%d %b %Y}  ·  {" · ".join(esc(l) for l in langs)}</text>
     </g>'''
-    # ASCII portrait, printed row by row (18 ms apart)
-    p = os.path.join(ROOT, "assets", "portrait.txt")
-    if os.path.exists(p):
-        rows = open(p).read().split("\n")
-        cw, lh, fs = 4.2, 8.1, 6.9
-        x0, y0 = 440, 40
-        for i, row in enumerate(rows):
+    # ASCII portrait, printed row by row (18 ms apart); one version per theme
+    cw, lh, fs = 2.8, 5.65, 4.8
+    x0, y0 = 458, 30
+    for cls, fn in (("pl", "portrait.txt"),):
+        p = os.path.join(ROOT, "assets", fn)
+        if not os.path.exists(p):
+            continue
+        body += f'<g class="{cls}">'
+        for i, row in enumerate(open(p).read().split("\n")):
             if not row.strip():
                 continue
-            body += (f'<text class="r m" style="animation-delay:{.5 + i * .018:.3f}s" xml:space="preserve" '
+            body += (f'<text class="r m" style="animation-delay:{.4 + i * .018:.3f}s" xml:space="preserve" '
                      f'x="{x0}" y="{y0 + i * lh:.1f}" font-size="{fs}" fill="{INK}" textLength="{len(row) * cw:.1f}" '
                      f'lengthAdjust="spacing">{esc(row)}</text>')
+        body += "</g>"
     write("hero.svg", svg(820, 400, body, css))
 
 
