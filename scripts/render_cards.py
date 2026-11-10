@@ -84,10 +84,18 @@ def hero():
     '''
     # ascii-style code rows on the right, printing row by row
     rows = ["const hospital = new Altrus();", "await hospital.admit(patient);", "await hospital.discharge();",
-            "bot.on('whatsapp', book);", "fms.run('facility-round');", "ship(); // daily"]
+            "bot.on('whatsapp', book);", "fms.run('facility-round');"]
     for i, r in enumerate(rows):
-        body += (f'<text class="l m" style="animation-delay:{0.6 + i * 0.18:.2f}s" x="540" y="{70 + i * 26}" '
+        body += (f'<text class="l m" style="animation-delay:{0.6 + i * 0.18:.2f}s" x="330" y="{50 + i * 26}" '
                  f'font-size="13" fill="{ACCENT if i % 2 == 0 else MUTED}">{html.escape(r)}</text>')
+    import base64
+    img = os.path.join(ROOT, "assets", "me.jpg")
+    if os.path.exists(img):
+        b64 = base64.b64encode(open(img, "rb").read()).decode()
+        body += (f'<defs><clipPath id="av"><circle cx="705" cy="125" r="84"/></clipPath></defs>'
+                 f'<g class="l l3"><circle cx="705" cy="125" r="90" fill="none" stroke="{ACCENT}" stroke-width="2" stroke-dasharray="6 6">'
+                 f'<animateTransform attributeName="transform" type="rotate" from="0 705 125" to="360 705 125" dur="30s" repeatCount="indefinite"/></circle>'
+                 f'<image href="data:image/jpeg;base64,{b64}" x="621" y="41" width="168" height="168" clip-path="url(#av)" preserveAspectRatio="xMidYMid slice"/></g>')
     write("hero.svg", svg(820, 250, body, css))
 
 
